@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "vook_db_v5"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10.5"
 
 
 [build-system]
