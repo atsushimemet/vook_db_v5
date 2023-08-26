@@ -3,42 +3,43 @@
 
 # # Import
 
-# In[13]:
+# In[24]:
 
 
-import sys
+# import sys
 
-sys.path.append("../")
+# sys.path.append("../")
 import datetime
-import hashlib
+
+from vook_db_v5.local_config import ClientId, pid, sid
+
+aff_id = f"//ck.jp.ap.valuecommerce.com/servlet/referral?vs={sid}&vp={pid}&vc_url="
+
+# import hashlib
 import json
 
 import pandas as pd
 import requests
 
-from vook_db_v4.config import ClientId, aff_id, pid, sid
-
 
 # # Global
 
-# In[25]:
+# In[33]:
 
 
 REQ_URL_CATE = "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch"
 
-WANT_ITEMS = [
-    "itemCode",
-    "itemName",
-    "itemPrice",
-    "itemUrl",
-]
+
+PLATFORM = "Yahoo"
 PLATFORM_ID = 2
 BRAND = "リーバイス"
 BRAND_ID = 1
 ITEM = "デニム"
 ITEM_ID = 1
-LINE = "66前期"
+LINE = "501"
 LINE_ID = 1
+KNOWLEDGE = "66前期"
+KNOWLEDGE_ID = 1
 START_AGE = 1974
 END_AGE = 1977
 AGES_ID = 1
@@ -57,16 +58,35 @@ TABLE_COLUMNS = [
     "status",
 ]
 
+WANT_ITEMS = [
+    "id",
+    "name",
+    "url",
+    "price",
+    "knowledge_id",
+    "platform_id",
+    "size_id",
+    "created_at",
+    "updated_at",
+]
+
 
 # # Main
 
-# In[3]:
+# In[31]:
 
 
-query = f"{BRAND} ヴィンテージ {ITEM} {LINE}"
+query = f"{BRAND} ヴィンテージ {ITEM} {LINE} {KNOWLEDGE}"
 
 
-# In[4]:
+# In[36]:
+
+
+# 現在の日付と時刻を取得 & フォーマットを指定して文字列に変換
+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+
+
+# In[37]:
 
 
 params = {
@@ -102,79 +122,29 @@ for inc in range(0, max_products, step):
                 (
                     h["index"],
                     h["name"],
-                    h["price"],
                     h["url"],
+                    h["price"],
+                    KNOWLEDGE_ID,
+                    PLATFORM_ID,
+                    "",
+                    # 現在の日付と時刻を取得 & フォーマットを指定して文字列に変換
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
+                    # 現在の日付と時刻を取得 & フォーマットを指定して文字列に変換
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
                 )
             )
         df = pd.DataFrame(l_hit, columns=WANT_ITEMS)
         l_df.append(df)
 
 
-# In[7]:
+# In[39]:
 
 
-lines_raw = pd.concat(l_df, axis=0, ignore_index=True)
-lines_raw
+products_raw = pd.concat(l_df, axis=0, ignore_index=True)
 
 
-# In[9]:
+# In[40]:
 
 
-lines_raw.to_csv(
-    f"../data/output/{RUN_TIME}_lines_raw_{BRAND}_{ITEM}_{LINE}.csv", index=False
-)
-
-
-# In[26]:
-
-
-product_id_list = []
-product_name_list = []
-platform_id_list = []
-ages_id_list = []
-brand_id_list = []
-item_id_list = []
-line_id_list = []
-price_list = []
-info_get_date_list = []
-info_published_date_list = []
-status_list = []
-for _, row in lines_raw.iterrows():
-    product_id_list.append(hashlib.md5(str(row["itemCode"]).encode()).hexdigest())
-    product_name_list.append(row["itemName"])
-    price_list.append(row["itemPrice"])
-    # info_published_date_list = []  # TODO
-    # status_list = []  # TODO
-tmp_cols = ["product_id", "product_name", "price"]
-tmp_df = pd.DataFrame(
-    zip(product_id_list, product_name_list, price_list),
-    columns=tmp_cols,
-)
-tmp_df["platform_id"] = PLATFORM_ID
-tmp_df["ages_id"] = AGES_ID
-tmp_df["brand_id"] = BRAND_ID
-tmp_df["item_id"] = ITEM_ID
-tmp_df["line_id"] = LINE_ID
-tmp_df["info_get_date"] = INFO_GET_DATE
-tmp_df["status"] = ""
-tmp_df = tmp_df[TABLE_COLUMNS]
-lines = tmp_df.copy()
-
-
-# In[29]:
-
-
-lines.dtypes
-
-
-# In[30]:
-
-
-lines.head()
-
-
-# In[31]:
-
-
-lines.to_csv(f"../data/output/{RUN_TIME}_products.csv", index=False)
+products_raw.to_csv(f"./data/output/products_raw.csv", index=False)
 
