@@ -8,6 +8,8 @@ packages = [{include = "vook_db_v5"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+jupyterlab = "^4.0.3"
+pandas = "^2.0.3"
 
 
 [build-system]
